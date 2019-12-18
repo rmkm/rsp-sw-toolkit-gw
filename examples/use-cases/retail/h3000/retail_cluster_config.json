@@ -3,18 +3,18 @@
   "clusters": [
     {
       "id": "BackStockCluster",
-      "personality": ,
-      "facility_id": "",
-      "aliases": [  ],
-      "behavior_id": "",
-      "sensor_groups": [[""]]
+      "personality": null,
+      "facility_id": "Retail_Store_8402",
+      "aliases": ["BackStock", "BackStock"],
+      "behavior_id": "behavior_PORTS_1",
+      "sensor_groups": [["RSP-1509b5"]]
     }, {
       "id": "SalesFloorExitCluster",
-      "personality": "",
-      "facility_id": "",
-      "aliases": [  ],
-      "behavior_id": "",
-      "sensor_groups": [[""]]
+      "personality": "EXIT",
+      "facility_id": "Retail_Store_8402",
+      "aliases": ["SalesFloor", "SalesFloor"],
+      "behavior_id": "behavior_PORTS_1",
+      "sensor_groups": [["RSP-1508da"]]
     }
   ]
 }

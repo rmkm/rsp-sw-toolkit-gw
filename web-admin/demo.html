@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+
+<title>Demo</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="/web-admin/w3.css">
+<link rel="stylesheet" type="text/css" href="/web-admin/fontawesome/css/all.css">
+<link rel="stylesheet" type="text/css" href="/web-admin/styles.css"/>
+<link rel="stylesheet" type="text/css" href="/web-admin/demo.css"/>
+
+<script src="/web-admin/socket-support.js"></script>
+<script src="/web-admin/common.js"></script>
+<script type="text/javascript" src="jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="isotope.pkgd.min.js"></script>
+<script type="text/javascript" src="demo.js"></script>
+
+<script type="text/javascript">
+
+    var currentPage = "demo";
+
+    var socket = new ControllerWebSocket();
+
+    var gridIdList = [];
+
+    function onSocketState(state) {
+        if (state === "open") {
+            requestInventoryTagInfo();
+            setInterval(requestInventoryTagInfo, 3000);
+        }
+    }
+
+    socket.addStateListener(onSocketState);
+
+    socket.inboundResponse = function (jsonRsp, jsonReq) {
+        switch (jsonReq.method) {
+            case "inventory_get_tag_info":
+                console.log(jsonRsp.result);
+                onTagInfo(jsonRsp.result);
+                break;
+            case "inventory_unload":
+                clearAllRows();
+                break;
+        }
+    };
+    
+    function onTagInfo(list) {
+
+        for (var i = 0; i < list.length; i++) {
+
+            //morishima start
+            var curTag = list[i];
+            var curId = curTag.epc.substr(curTag.epc.length - 4); // Get last 4 char
+            var item = document.getElementById(curId);
+            if (item !== null) { // Found item
+                var parentGrid = item.parentElement;
+                if (curTag.location != parentGrid.id) { // Move item
+                    var nextGrid = document.getElementById(curTag.location);
+                    var parentIso = Isotope.data(parentGrid);
+                    var nextIso = Isotope.data(nextGrid);
+                    var cloneItem = item.cloneNode(true);
+                    cloneItem.style.backgroundColor = colorNameToHex("orange");
+                    parentIso.remove(item);
+                    item.parentNode.removeChild(item);
+                    //parentIso.layout();
+                    nextIso.insert(cloneItem);
+                } else {
+                    item.style.backgroundColor = colorNameToHex("almond");
+                }
+            } else { // Not found, Create new item
+                var grid = document.getElementById(curTag.location);
+                if (grid === null) { // Create new grid
+                    gridIdList.push(curTag.location);
+                    grid = createGrid(curTag.location, curTag.location);
+                    background.appendChild(grid);
+                }
+                //var itemId = curTag.epc.substr(curTag.epc.length - 4);
+                //var newItem = createItem(itemId);
+                var newItem = createItem(curTag);
+                var iso = Isotope.data(grid);
+                iso.insert(newItem);
+            }
+            //morishima end
+
+            //var curTag = list[i];
+            var tRow = document.getElementById(curTag.epc + ".row");
+            if (tRow === null) {
+                createTagRow(curTag.epc);
+            }
+
+            document.getElementById(curTag.epc + ".epc").innerHTML = curTag.epc;
+            document.getElementById(curTag.epc + ".tid").innerHTML = curTag.tid != null ? curTag.tid : "&nbsp;";
+            document.getElementById(curTag.epc + ".state").innerHTML = curTag.state;
+            document.getElementById(curTag.epc + ".location").innerHTML = curTag.location;
+            document.getElementById(curTag.epc + ".last_read_on").innerHTML = epochToGMT(curTag.last_read_on);
+            document.getElementById(curTag.epc + ".facility_id").innerHTML = curTag.facility_id;
+        }
+        for (var i = 0; i < gridIdList.length; i++) {
+            var grid = document.getElementById(gridIdList[i]);
+            var iso = Isotope.data(grid);
+            iso.layout();
+        }
+    }
+
+    function requestInventoryTagInfo() {
+        var pattern = document.getElementById("epc_filter_pattern").value;
+        socket.sendJsonRequest("inventory_get_tag_info", {filter_pattern: pattern});
+    }
+
+    function sendEpcFilterPattern() {
+        clearAllRows();
+        setCookie("epc_filter_pattern", document.getElementById("epc_filter_pattern").value);
+        requestInventoryTagInfo();
+    }
+    
+    function initEpcFilterInput() {
+        var e = document.getElementById("epc_filter_pattern");
+        e.addEventListener("keyup", function (event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                sendEpcFilterPattern();
+            }
+        });
+        e.value = getCookie("epc_filter_pattern");
+    }
+
+
+    function createTagRow(epc) {
+        console.log("createTagRow");
+
+        var newRow;
+
+        newRow = document.createElement("div");
+        newRow.id = epc + ".row";
+        newRow.className = "w3-row w3-padding w3-border-bottom";
+        
+        newRow.appendChild(createStandardColumn("w3-col l3", epc + ".epc"));
+        newRow.appendChild(createStandardColumn("w3-col l3", epc + ".tid"));
+        newRow.appendChild(createStandardColumn("w3-col l1", epc + ".state"));
+        newRow.appendChild(createStandardColumn("w3-col l1", epc + ".location"));
+        newRow.appendChild(createStandardColumn("w3-col l2", epc + ".last_read_on"));
+        newRow.appendChild(createStandardColumn("w3-col l2", epc + ".facility_id"));
+
+        var table = document.getElementById("table_data");
+        var child = null;
+        for (var i = 0; i < table.childNodes.length; i++) {
+            child = table.childNodes[i];
+            if (child.id > epc) {
+                break;
+            }
+            child = null;
+        }
+        if (child === undefined) {
+            table.appendChild(newRow);
+        } else {
+            table.insertBefore(newRow, child);
+        }
+    }
+
+    function createTagBlock(tag) {
+        console.log("createTagBlock");
+
+        var newBlock;
+
+        newBlock = document.createElement("div");
+        newBlock.id = tag.epc + ".block";
+        newBlock.className = "demoTag";
+        newBlock.innerHTML = tag.epc.slice(-3);
+        console.log("newBlock", newBlock);
+        var container = document.getElementById(tag.location);
+        container.appendChild(newBlock);
+    }
+
+    function createContainer(tag) {
+        console.log("createContainer");
+        
+        var newContainer;
+
+        newContainer = document.createElement("div");
+        newContainer.id = tag.location;
+        newContainer.className = "demoContainer";
+        newContainer.innerHTML = tag.location;
+        console.log("newContainer", newContainer);
+
+        var background = document.getElementById("demoBackground");
+        background.appendChild(newContainer);
+    }
+    
+    function clearAllRows() {
+        var table = document.getElementById("table_data");
+        while(table.firstChild) {
+            table.removeChild(table.firstChild);
+        }
+    }
+
+    function createStandardColumn(className, id) {
+        var col = document.createElement("div");
+        col.className = className;
+        col.style.wordBreak = "break-word";
+        col.id = id;
+        col.innerHTML = "&nbsp;";
+        col.appendChild(document.createTextNode('\u00A0\u00A0'));
+        return col;
+    }
+    
+    function unload() {
+        socket.sendJsonRequest("inventory_unload", null);
+    }
+
+    function init() {
+        initEpcFilterInput();
+        socket.init();
+    }
+
+    $(document).ready(function(){
+        $('#sorts').on( 'click', 'button', function() {
+            var sortByValue = $(this).attr('data-sort-by');
+            for (var i = 0; i < gridIdList.length; i++) {
+                var grid = document.getElementById(gridIdList[i]);
+                var iso = Isotope.data(grid);
+                iso.arrange({sortBy: sortByValue});
+            }
+        });
+    });
+
+</script>
+
+<body onload="init()">
+
+<div id="modal_overlay" class="w3-modal">
+    <div class="w3-modal-content w3-animate-top w3-card-4 w3-white w3-row">
+        <div class="w3-bar w3-blue">
+            <div class="w3-bar-item" id="modal_device_id"></div>
+            <div class="w3-bar-item"><i class="fa fa-greater-than"></i></div>
+            <div class="w3-bar-item" id="modal_label"></div>
+            <div class="w3-bar-item">
+                <button class="w3-button w3-display-topright" onclick='closeResultsModal();'>
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div id="modal_content"></div>
+    </div>
+</div>
+
+<div id="header" class="w3-black">
+    <script src="header.js"></script>
+
+    <div class="w3-bar w3-blue">
+        <div class="w3-bar-item">
+            <div class="w3-large w3-padding-small w3-button" onclick="unload();">
+                <i class="fa fa-trash"> </i> Unload
+            </div>
+        </div>
+        <div class="w3-bar-item">
+            <label class="w3-opacity" for="epc_filter_pattern"><b>EPC Filter Pattern</b></label>
+            <input type="text" id="epc_filter_pattern"/>
+            <button class="w3-large w3-padding-small w3-button" onclick="sendEpcFilterPattern();"><i class="fas fa-sync"></i> Apply</button>
+        </div>
+    </div>
+</div>
+
+<div id="sorts" class="button-group">
+    <button class="button" data-sort-by="original-order">Original order</button>
+    <button class="button" data-sort-by="epc">EPC</button>
+    <button class="button" data-sort-by="category">Category</button>
+    <button class="button" data-sort-by="state">State</button>
+</div>
+<div id="background"></div>
+
+<div id="table_header" class="w3-row w3-padding w3-grey">
+    <div class="w3-col l3">EPC</div>
+    <div class="w3-col l3">TID</div>
+    <div class="w3-col l1">State</div>
+    <div class="w3-col l1">Location</div>
+    <div class="w3-col l2">Last Read</div>
+    <div class="w3-col l2">Facility</div>
+</div>
+
+<div id="table_data">
+</div>
+
+
+</body>
+
+</html>

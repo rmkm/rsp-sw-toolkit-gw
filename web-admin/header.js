@@ -8,7 +8,8 @@ var pages = {
     cluster_cfg: {label: "Cluster Config", ref: "cluster-config.html", icon: icons.clusters},
     behaviors: {label: "Behaviors", ref: "behaviors.html", icon: icons.configuration },
     mobility_profile: {label: "Mobility Profile", ref: "mobility-profile.html", icon: icons.mobility },
-    about: {label: "About", ref: "about.html", icon: icons.about }
+    about: {label: "About", ref: "about.html", icon: icons.about },
+    demo: {label: "Demo", ref: "demo.html", icon: icons.inventory}
 };
 
 // height of 100px for the size of the logo

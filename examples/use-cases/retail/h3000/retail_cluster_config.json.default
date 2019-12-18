@@ -1,0 +1,20 @@
+{
+  "id": "RetailUseCaseClusterConfigExample",
+  "clusters": [
+    {
+      "id": "BackStockCluster",
+      "personality": ,
+      "facility_id": "",
+      "aliases": [  ],
+      "behavior_id": "",
+      "sensor_groups": [[""]]
+    }, {
+      "id": "SalesFloorExitCluster",
+      "personality": "",
+      "facility_id": "",
+      "aliases": [  ],
+      "behavior_id": "",
+      "sensor_groups": [[""]]
+    }
+  ]
+}
