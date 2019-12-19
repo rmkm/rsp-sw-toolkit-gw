@@ -1,5 +1,5 @@
 :root {
-    --niceBlack: #303030;
+    --niceBlack: #202020;
     --niceGrey: #B7B8B6;
     --niceAlmond: #f4f0e1;
     --niceNeutral: #efefef;
@@ -15,10 +15,15 @@
     /*color: var(--niceBlack);*/
 }
 
+h2 {
+    margin-left: 20px;
+}
+
 /* ---- button ---- */
+
 .button-group {
-    background-color: var(--niceBlack);
-    padding-top: 10px;
+  margin-left: 20px;
+  margin-bottom: 20px;
 }
 
 .button {
@@ -107,21 +112,38 @@
 }
 
 .grid-item .item-icon {
-  position: absolute;
-  left: 1px;
-  top: 1px;
-  width: 50%;
+    position: absolute;
+    left: 1px;
+    top: 1px;
+    width: 50%;
 }
 
 .grid-item .epc {
-  position: absolute;
-  right: 8px;
-  top: 5px;
+    position: absolute;
+    right: 8px;
+    top: 5px;
 }
 
 .grid-item .state {
-  position: absolute;
-  left: 8px;
-  top: 78px;
-  font-size: 10px;
+    position: absolute;
+    left: 8px;
+    top: 78px;
+    font-size: 10px;
+}
+
+.grid-item .glasses {
+}
+.grid-item .heels {
+}
+.grid-item .coats {
+}
+.grid-item .shirts {
+}
+.grid-item .skirts {
+}
+.grid-item .sneakers {
+}
+.grid-item .trousers {
+}
+.grid-item .watches {
 }

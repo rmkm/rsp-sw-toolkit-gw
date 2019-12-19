@@ -13,6 +13,7 @@
 <script src="/web-admin/common.js"></script>
 <script type="text/javascript" src="jquery-3.4.1.min.js"></script>
 <script type="text/javascript" src="isotope.pkgd.min.js"></script>
+<script type="text/javascript" src="jquery.color-2.1.2.min.js"></script>
 <script type="text/javascript" src="demo.js"></script>
 
 <script type="text/javascript">
@@ -48,7 +49,6 @@
 
         for (var i = 0; i < list.length; i++) {
 
-            //morishima start
             var curTag = list[i];
             var curId = curTag.epc.substr(curTag.epc.length - 4); // Get last 4 char
             var item = document.getElementById(curId);
@@ -59,13 +59,14 @@
                     var parentIso = Isotope.data(parentGrid);
                     var nextIso = Isotope.data(nextGrid);
                     var cloneItem = item.cloneNode(true);
-                    cloneItem.style.backgroundColor = colorNameToHex("orange");
                     parentIso.remove(item);
                     item.parentNode.removeChild(item);
                     //parentIso.layout();
+                    cloneItem.style.backgroundColor = colorNameToHex("orange");
                     nextIso.insert(cloneItem);
-                } else {
-                    item.style.backgroundColor = colorNameToHex("almond");
+                    $(cloneItem).animate({
+                        backgroundColor: colorNameToHex("almond")
+                    }, 4000);
                 }
             } else { // Not found, Create new item
                 var grid = document.getElementById(curTag.location);
@@ -74,13 +75,10 @@
                     grid = createGrid(curTag.location, curTag.location);
                     background.appendChild(grid);
                 }
-                //var itemId = curTag.epc.substr(curTag.epc.length - 4);
-                //var newItem = createItem(itemId);
                 var newItem = createItem(curTag);
                 var iso = Isotope.data(grid);
                 iso.insert(newItem);
             }
-            //morishima end
 
             //var curTag = list[i];
             var tRow = document.getElementById(curTag.epc + ".row");
@@ -213,6 +211,7 @@
     }
 
     $(document).ready(function(){
+
         $('#sorts').on( 'click', 'button', function() {
             var sortByValue = $(this).attr('data-sort-by');
             for (var i = 0; i < gridIdList.length; i++) {
@@ -221,6 +220,41 @@
                 iso.arrange({sortBy: sortByValue});
             }
         });
+
+        // filter functions
+        var filterFns = {
+            // show if number is greater than 50
+            numberGreaterThan50: function() {
+                var number = $(this).find('.number').text();
+                return parseInt( number, 10 ) > 50;
+            },
+            // show if name ends with -ium
+            ium: function() {
+                var name = $(this).find('.name').text();
+                return name.match( /ium$/ );
+            }
+        };
+
+        $('.filters-button-group').on( 'click', 'button', function() {
+            var filterValue = $( this ).attr('data-filter');
+            // use filterFn if matches value
+            filterValue = filterFns[ filterValue ] || filterValue;
+            console.log(filterValue);
+            for (var i = 0; i < gridIdList.length; i++) {
+                var grid = document.getElementById(gridIdList[i]);
+                var iso = Isotope.data(grid);
+                iso.arrange({filter: filterValue});
+            }
+        });
+
+        $('.button-group').each( function( i, buttonGroup ) {
+            var $buttonGroup = $( buttonGroup );
+            $buttonGroup.on( 'click', 'button', function() {
+                $buttonGroup.find('.is-checked').removeClass('is-checked');
+                $( this ).addClass('is-checked');
+            });
+        });
+
     });
 
 </script>
@@ -260,11 +294,23 @@
     </div>
 </div>
 
+<h2>Sort</h2>
 <div id="sorts" class="button-group">
-    <button class="button" data-sort-by="original-order">Original order</button>
-    <button class="button" data-sort-by="epc">EPC</button>
+    <button class="button is-checked" data-sort-by="epc">EPC</button>
     <button class="button" data-sort-by="category">Category</button>
     <button class="button" data-sort-by="state">State</button>
+</div>
+<h2>Filter</h2>
+<div class="button-group filters-button-group">
+    <button class="button is-checked" data-filter="*">show all</button>
+    <button class="button" data-filter=".glasses">Glasses</button>
+    <button class="button" data-filter=".heels">Heels</button>
+    <button class="button" data-filter=".coats">Coats</button>
+    <button class="button" data-filter=".shirts">Shirts</button>
+    <button class="button" data-filter=".skirts">Skirts</button>
+    <button class="button" data-filter=".sneakers">Sneakers</button>
+    <button class="button" data-filter=".trousers">Trousers</button>
+    <button class="button" data-filter=".watches">Watches</button>
 </div>
 <div id="background"></div>
 
