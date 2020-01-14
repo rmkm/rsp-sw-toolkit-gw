@@ -69,7 +69,8 @@ h2 {
 }
 
 .grid {
-    width: 565px;
+    /*width: 565px;*/ /* 5 items */
+    width: 900px; /* 8 items */
     min-height: 410px;
 
     background-color: var(--niceLightBlue);
